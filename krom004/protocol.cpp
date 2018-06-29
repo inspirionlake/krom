@@ -8,12 +8,6 @@
 
 #include "uart.h"
 #include "protocol.h"
-
-uint8_t dataBuffer[5] = {0,0,0,0};
-	
-void echo_msg(uint8_t *msg) {
-	;
-}
 	
 /*
   Name  : CRC-8
@@ -78,26 +72,5 @@ uint8_t checkCRC(uint8_t rec_crc, uint8_t frameLength, uint8_t *frame) {
 	}
 	else {
 		return 1;
-	}
-}
-
-void checkBuffer(uint8_t *buf) {
-	if (buf[0] == 1) {			//	start of frame
-		switch(buf[1]) {		//	switch function
-			case ECHO_MSG: {
-				uint8_t dataByteCounts;
-				for (dataByteCounts = 0; dataByteCounts < buf[2]; dataByteCounts++) {	//	reading data
-					dataBuffer[dataByteCounts] = buf[3+dataByteCounts];
-				}
-				uint8_t index = 2 + dataByteCounts;
-				if (checkCRC(buf[index], index+1, buf)) {
-					;	//	error. please, repeat.
-				}
-				else {
-					echo_msg(buf);	//	all ok
-				}
-				break;
-			}
-		}
 	}
 }

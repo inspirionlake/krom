@@ -15,6 +15,4 @@ void checkBuffer(uint8_t *buf);
 
 uint8_t *makeFrame(uint8_t function_code, uint8_t data_counts, uint8_t *data);
 
-
-
 #endif /* PROTOCOL_H_ */
