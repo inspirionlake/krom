@@ -100,10 +100,6 @@ Axis axis_x(X, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir,
 Axis axis_y(Y, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep
 Axis axis_z(Z, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep
 
-uint8_t uart_buffer[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-uint8_t u_buf_cur_pos = 0;
-uint8_t u_buf_over = 0;
-
 void timerInit(void) {			//	timer for postprocessor refresh
 	TCCR0A = 0;					//	normal port operations
 	TCCR0A |= (1<<WGM01);		//	CTC mode
@@ -215,14 +211,7 @@ ISR(TIMER0_COMPA_vect) {	//	interrupt service where postprocessor will be refres
 }
 
 ISR(USART_RX_vect) {		//	when uart received byte. It put byte to uart_buffer
-	cli();
-	uart_buffer[u_buf_cur_pos] = UDR0;
-	u_buf_cur_pos++;
-	if (u_buf_cur_pos >= 20) {
-		u_buf_over = 1;
-		u_buf_cur_pos = 0;
-	}
-	sei();
+	uartReceiveInInterrupt();
 }
 
 int main(void)
