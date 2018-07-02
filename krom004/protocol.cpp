@@ -4,6 +4,8 @@
  * Created: 21.06.2018 18:45:41
  *  Author: Dmitry
  */ 
+
+//protocol
 #include <avr/io.h>
 
 #include "uart.h"
@@ -75,8 +77,6 @@ uint8_t checkCRC(uint8_t rec_crc, uint8_t frameLength, uint8_t *frame) {
 	}
 }
 
-
-//protocol
 void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code, uint8_t *data, uint8_t number_of_data_bytes) {
 	*number_of_bytes = 5 + number_of_data_bytes;	//	start_code(1) + function_code(1) + number_of_data_bytes + CRC(1) + end_code(1) + data = 5 + data
 	uint8_t index = 0;
@@ -104,5 +104,15 @@ void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code, 
 	
 	++index;
 	frame[index] = end_code;
+}
+
+uint8_t sendFrame(uint8_t *frame, uint8_t number_of_bytes) {
+	uint8_t i = 0;
+	for (i = 0; i < number_of_bytes; i++) {
+		if (putInTrmBuf(frame[i])) {
+			return 1;	//	frame was loaded in buffer not completely
+		}
+	}
+	return 0;	//	frame was loaded in buffer completely
 }
 //protocol

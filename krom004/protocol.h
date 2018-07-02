@@ -11,4 +11,6 @@
 
 void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code, uint8_t *data, uint8_t number_of_data_bytes);
 
+uint8_t sendFrame(uint8_t *frame, uint8_t number_of_bytes);
+
 #endif /* PROTOCOL_H_ */
