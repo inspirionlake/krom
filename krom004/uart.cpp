@@ -9,11 +9,13 @@
 #include <stdlib.h>
 
 //driver
-uint8_t uart_rcv_buffer[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#define MAX_BUFFER_SIZE 20
+
+uint8_t uart_rcv_buffer[MAX_BUFFER_SIZE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint8_t u_buf_rcv_cur_pos = 0;
 uint8_t u_buf_rcv_over = 0;
 
-uint8_t uart_trm_buffer[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint8_t uart_trm_buffer[MAX_BUFFER_SIZE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint8_t u_buf_trm_cur_pos = 0;
 uint8_t u_buf_trm_over = 0;
 
@@ -32,7 +34,7 @@ void uartTransmit(uint8_t m_ucMsg) {
 	while( !(UCSR0A & (1<<UDRE0)) ) {							//	wait for empty transmit buffer
 		;
 	}
-	UDR0 = m_ucMsg;												//	put msg into buffer, sends the msg
+	UDR0 = m_ucMsg;							//	put msg into buffer, sends the msg
 }
 
 uint8_t uartReceive(void) {
@@ -58,17 +60,27 @@ void uartTransmitInInterrupt(void) {
 }
 
 uint8_t putInTrmBuf(uint8_t data_byte) {
-	if (u_buf_trm_cur_pos >= 20) {
+	if (u_buf_trm_cur_pos >= MAX_BUFFER_SIZE) {
 		return 1; //	transmit buffer overload
 	}
 	if (u_buf_trm_cur_pos == 0) {
 		++u_buf_trm_cur_pos;
 		uart_trm_buffer[u_buf_trm_cur_pos] = data_byte;
+		uartStartTrmInInterrupt();
 		return 0;	//	data byte was added in transmit buffer;
 	}	
 	++u_buf_trm_cur_pos;
 	uart_trm_buffer[u_buf_trm_cur_pos] = data_byte;
+	uartStartTrmInInterrupt();
 	return 0;	//	data byte was added in transmit buffer
+}
+
+uint8_t uartStartTrmInInterrupt(void) {
+	if (UDRE0) {
+		uartTransmitInInterrupt();
+		return 0;		//	uart data register was empty, transmitting is starting
+	}
+	return 1;	//	uart data register is not empty
 }
 //	driver
 

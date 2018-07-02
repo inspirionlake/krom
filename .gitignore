@@ -1,4 +1,12 @@
+*.exe
 *~
 Makefile
 *.atsln
-*.vs
+.vs/
+krom004/Debug/
+krom004/*.xml
+krom004/*.cppproj
+*.elf
+*.lss
+*.map
+*.[oa]

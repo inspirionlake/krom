@@ -36,6 +36,7 @@ void uartTransmitInInterrupt(void);
 uint8_t uartReceive(void);
 void uartReceiveInInterrupt(void);
 uint8_t putInTrmBuf(uint8_t data_byte);		//	return 0 if all ok, 1 if transmit buffer overload
+uint8_t uartStartTrmInInterrupt(void);		//	return 0 if uart data register empty and 1 if data register is not empty
 // driver
 
 void uartTransmitString(char *m_cpStr);

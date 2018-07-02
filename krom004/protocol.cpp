@@ -55,9 +55,9 @@ const unsigned char Crc8Table[256] = {
     0x3B, 0x0A, 0x59, 0x68, 0xFF, 0xCE, 0x9D, 0xAC
 };
 
-unsigned char Crc8(unsigned char *pcBlock, unsigned char len)
+uint8_t Crc8(uint8_t *pcBlock, uint8_t len)
 {
-    unsigned char crc = 0xFF;
+    uint8_t crc = 0xFF;
 
     while (len--)
         crc = Crc8Table[crc ^ *pcBlock++];
@@ -74,3 +74,35 @@ uint8_t checkCRC(uint8_t rec_crc, uint8_t frameLength, uint8_t *frame) {
 		return 1;
 	}
 }
+
+
+//protocol
+void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code, uint8_t *data, uint8_t number_of_data_bytes) {
+	*number_of_bytes = 5 + number_of_data_bytes;	//	start_code(1) + function_code(1) + number_of_data_bytes + CRC(1) + end_code(1) + data = 5 + data
+	uint8_t index = 0;
+	uint8_t start_code = 0b10101010;
+	uint8_t end_code = 0b01010101;
+	frame[index] = start_code;
+	
+	++index;
+	frame[index] = function_code;
+	
+	++index;
+	frame[index] = number_of_data_bytes;
+	
+	uint8_t i = 0;
+	for (i = 0; i < number_of_data_bytes; i++) {
+		++index;
+		frame[index] = data[i];
+	}
+	
+	++index;
+	frame[index] = end_code;
+	
+	uint8_t crc = Crc8(frame, *number_of_bytes - 1);
+	frame[index] = crc;
+	
+	++index;
+	frame[index] = end_code;
+}
+//protocol

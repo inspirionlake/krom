@@ -9,10 +9,6 @@
 
 #define	ECHO_MSG	2
 
-extern uint8_t dataBuffer[5];
-
-void checkBuffer(uint8_t *buf);
-
-uint8_t *makeFrame(uint8_t function_code, uint8_t data_counts, uint8_t *data);
+void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code, uint8_t *data, uint8_t number_of_data_bytes);
 
 #endif /* PROTOCOL_H_ */
