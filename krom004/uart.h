@@ -9,6 +9,8 @@
 #ifndef UART_H_
 #define UART_H_
 
+#define MAX_BUFFER_SIZE 20
+
 #include <avr/io.h>
 
 #ifndef FOSC

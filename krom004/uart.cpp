@@ -9,7 +9,6 @@
 #include <stdlib.h>
 
 //driver
-#define MAX_BUFFER_SIZE 20
 
 uint8_t uart_rcv_buffer[MAX_BUFFER_SIZE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint8_t u_buf_rcv_cur_pos = 0;
