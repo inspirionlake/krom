@@ -150,7 +150,7 @@ uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data) {
 		++index;
 	}
 	
-	++index;	//	set index on crc byte
+	//	now index on crc byte
 	uint8_t crc = frame[index];
 	
 	frame[index] = end_code;	//	I'm calculate crc without crc byte, only: start code, function code, number of data bytes, data, end code
