@@ -7,6 +7,7 @@
 
 //protocol
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 #include "uart.h"
 #include "protocol.h"
@@ -104,16 +105,22 @@ void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code, 
 	frame[index] = end_code;
 }
 
+uint8_t frame_buffer_state = 0;
+
 uint8_t sendFrame(uint8_t *frame, uint8_t number_of_bytes) {
 	uint8_t i = 0;
-	for (i = 0; i < number_of_bytes; i++) {
-		if (putInTrmBuf(frame[i])) {
-			return 1;	//	frame was loaded in buffer not completely
+	if (frame_buffer_state == 0) {
+		frame_buffer_state = 1;
+		for (i = 0; i < number_of_bytes; i++) {
+			if (putInTrmBuf(frame[i])) {
+				return 1;	//	frame was loaded in buffer not completely
+			}
 		}
+		uartStartTrmInInterrupt();
+		return 0;	//	frame was loaded in buffer completely
 	}
-	return 0;	//	frame was loaded in buffer completely
+	return 2;	//	frame buffer is busy. try load later
 }
-
 uint8_t receiveFrame(uint8_t *buffer, uint8_t *frame) {
 	uint8_t i = 0;
 	for (i = 0; i < MAX_BUFFER_SIZE; i++) {

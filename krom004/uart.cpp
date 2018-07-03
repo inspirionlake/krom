@@ -7,6 +7,8 @@
 
 #include "uart.h"
 #include <stdlib.h>
+#include <avr/interrupt.h>
+#include "protocol.h"
 
 //driver
 
@@ -23,8 +25,7 @@ void uartInit(/*unsigned int m_uiUbrr*/void) {
 	UBRR0H = (unsigned char)(m_uiUbrr>>8);						//	set baud rate
 	UBRR0L = (unsigned char)m_uiUbrr;
 	
-	UCSR0B = (1<<RXEN0) | (1<<TXEN0);							//	enable received and transmit
-	UCSR0B |= (1<<RXCIE0);										//	enable interrupt when receive complete
+	UCSR0B = (1<<RXEN0);										//	enable received and transmit
 	
 	UCSR0C = (1<<USBS0) | (3<<UCSZ00);							//	set frame format 8data, 2stop bit
 }
@@ -52,9 +53,20 @@ void uartReceiveInInterrupt(void) {
 }
 
 void uartTransmitInInterrupt(void) {
+	UCSR0B &= ~(1<<UDRIE0);
+	UCSR0B &= ~(1<<TXEN0);
 	if (u_buf_trm_cur_pos > 0) {
 		UDR0 = uart_trm_buffer[u_buf_trm_cur_pos];
 		--u_buf_trm_cur_pos;
+		//UCSR0B |= (1<<UDRIE0);
+		UCSR0B |= (1<<TXCIE0);
+		UCSR0B |= (1<<TXEN0);
+	}
+	else {
+		frame_buffer_state = 0;
+		UCSR0B &= ~(1<<TXCIE0);
+		UCSR0B &= ~(1<<UDRIE0);
+		UCSR0B &= ~(1<<TXEN0);
 	}
 }
 
@@ -65,12 +77,10 @@ uint8_t putInTrmBuf(uint8_t data_byte) {
 	if (u_buf_trm_cur_pos == 0) {
 		++u_buf_trm_cur_pos;
 		uart_trm_buffer[u_buf_trm_cur_pos] = data_byte;
-		uartStartTrmInInterrupt();
 		return 0;	//	data byte was added in transmit buffer;
 	}	
 	++u_buf_trm_cur_pos;
 	uart_trm_buffer[u_buf_trm_cur_pos] = data_byte;
-	uartStartTrmInInterrupt();
 	return 0;	//	data byte was added in transmit buffer
 }
 

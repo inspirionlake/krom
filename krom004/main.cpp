@@ -214,6 +214,14 @@ ISR(USART_RX_vect) {		//	when uart received byte. It put byte to uart_buffer
 	uartReceiveInInterrupt();
 }
 
+ISR(USART_UDRE_vect) {
+	uartTransmitInInterrupt();
+}
+
+ISR(USART_TX_vect) {
+	uartTransmitInInterrupt();
+}
+
 int main(void)
 {
 	uartInit();
@@ -226,8 +234,44 @@ int main(void)
 	axis_x.findHome();
 	axis_y.findHome();
 	axis_z.findHome();
+	
+	//test of make&send frame
+	uint8_t frame[20];
+
+	uint8_t function_code = 5;
+	uint8_t number_of_data_bytes = 2;
+	uint8_t data[number_of_data_bytes] = {1, 4};
+	uint8_t number_of_bytes;
+	makeFrame(frame, &number_of_bytes, function_code, data, number_of_data_bytes);
+	sendFrame(frame, number_of_bytes);
+	
+	for (uint32_t i = 0; i < 2000000; i++) {
+		;
+	}
+	
+	while (sendFrame(frame, number_of_bytes) != 0) {
+		;
+	}
+	
+	for (uint32_t i = 0; i < 2000000; i++) {
+		;
+	}
+	
+	
+	while (sendFrame(frame, number_of_bytes) != 0) {
+		;
+	}
+	
+	_delay_ms(1000);
+	
+	while (sendFrame(frame, number_of_bytes) != 0) {
+		;
+	}
+	//end of test make&send frame
     while (1) 
     {
+		//_delay_ms(1000);
+		//uartTransmit('\n');
 // 		axis_x.setCoordinate(760);
 // 		_delay_ms(5000);
 // 		axis_x.setCoordinate(0);
