@@ -65,6 +65,7 @@ uint8_t Crc8(uint8_t *pcBlock, uint8_t len)
 
 uint8_t checkCRC(uint8_t rec_crc, uint8_t frameLength, uint8_t *frame) {
 	uint8_t calc_crc = Crc8(frame, frameLength);
+	printf("calc_crc = %i, rec_crc = %i\n", calc_crc, rec_crc);
 	if (calc_crc == rec_crc) {
 		return 0;
 	}
@@ -97,6 +98,7 @@ void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code, 
 
 	uint8_t crc = Crc8(frame, *number_of_bytes - 1);
 	frame[index] = crc;
+	printf("CRC = %i\n", crc);
 
 	++index;
 	frame[index] = end_code;
@@ -121,13 +123,13 @@ uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data) {
 		++index;
 	}
 
-	++index;	//	set index on crc byte
+    //	now index on crc byte
 	uint8_t crc = frame[index];
+	//printf("CRC before checkCRC = %i\n", crc);
 
 	frame[index] = end_code;	//	I'm calculate crc without crc byte, only: start code, function code, number of data bytes, data, end code
 
 	if (checkCRC(crc, 4 + number_of_data_bytes, frame) == 1) {
-        cout << "HERE " << crc << endl; //  ERROR!!! CRC8 calculation is wrong. Why?
 		return 1;	//	crc error
 	}
 
@@ -143,9 +145,10 @@ uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data) {
 int main(void) {
     cout << "Start...\n";
     uint8_t frame[20];
-    uint8_t function_code = 1;
-    uint8_t number_of_data_bytes = 5;
-    uint8_t data[5] = {1, 1, 1, 1, 1};
+
+    uint8_t function_code = 5;
+    uint8_t number_of_data_bytes = 6;
+    uint8_t data[number_of_data_bytes] = {1, 4, 3, 2, 1, 0};
     uint8_t number_of_bytes;
     makeFrame(frame, &number_of_bytes, function_code, data, number_of_data_bytes);
     printf("number_of_bytes = %i\n", number_of_bytes);
@@ -157,7 +160,7 @@ int main(void) {
 
     printf("Result = %i, function_code = %i\n", result, function_code);
     uint8_t i = 0;
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < number_of_data_bytes; i++) {
         printf("Data #%i = %i\n", i, data[i]);
     }
 
