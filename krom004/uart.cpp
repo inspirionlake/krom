@@ -56,13 +56,16 @@ void uartReceiveInInterrupt(void) {
 void uartTransmitInInterrupt(void) {
 	UCSR0B &= ~(1<<UDRIE0);
 	UCSR0B &= ~(1<<TXEN0);
-	if (u_buf_trm_cur_pos > 0) {
-		UDR0 = uart_trm_buffer[u_buf_trm_cur_pos];
-		--u_buf_trm_cur_pos;
+	static uint8_t sending_pos = 0;
+	if (sending_pos < u_buf_trm_cur_pos) {
+		UDR0 = uart_trm_buffer[sending_pos];
+		++sending_pos;
 		UCSR0B |= (1<<TXCIE0);
 		UCSR0B |= (1<<TXEN0);
 	}
 	else {
+		sending_pos = 0;
+		u_buf_trm_cur_pos = 0;
 		frame_buffer_state_trm = 0;
 		UCSR0B &= ~(1<<TXCIE0);
 		UCSR0B &= ~(1<<TXEN0);
@@ -73,13 +76,8 @@ uint8_t putInTrmBuf(uint8_t data_byte) {
 	if (u_buf_trm_cur_pos >= MAX_BUFFER_SIZE) {
 		return 1; //	transmit buffer overload
 	}
-	if (u_buf_trm_cur_pos == 0) {
-		++u_buf_trm_cur_pos;
-		uart_trm_buffer[u_buf_trm_cur_pos] = data_byte;
-		return 0;	//	data byte was added in transmit buffer;
-	}	
-	++u_buf_trm_cur_pos;
 	uart_trm_buffer[u_buf_trm_cur_pos] = data_byte;
+	++u_buf_trm_cur_pos;
 	return 0;	//	data byte was added in transmit buffer
 }
 

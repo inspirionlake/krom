@@ -120,7 +120,7 @@ namespace uartProtocolTest
 
             int[] frame = new int[20];
 
-            int function_code = 5;
+            int function_code = 1;
             int number_of_data_bytes = 6;
             int[] data = new int[6] { 1, 4, 3, 2, 1, 0 };
             int number_of_bytes = 0;

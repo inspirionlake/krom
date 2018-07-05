@@ -213,7 +213,7 @@ ISR(TIMER0_COMPA_vect) {	//	interrupt service where postprocessor will be refres
 
 uint8_t rx_flag = 0;
 ISR(USART_RX_vect) {		//	when uart received byte. It put byte to uart_buffer
-	rx_flag = 1;
+	++rx_flag;
 	uartReceiveInInterrupt();
 }
 
@@ -234,24 +234,34 @@ int main(void)
 	axis_y.findHome();
 	axis_z.findHome();
 	
+	uint8_t rcv_frame[20];
+	uint8_t data[20];
 	
+	uint8_t number_of_data_byte = 0;
+	uint8_t function_code = 1;
+	
+	
+	uint8_t trm_frame[20];
+	uint8_t number_of_bytes;
     while (1) 
     {
-		//uint8_t rcv_frame[20];
-		//receiveFrame(uart_rcv_buffer, rcv_frame);
-		//uint8_t data[20];
-		uint8_t number_of_data_byte = 15;
-		uint8_t function_code = 1;
-		//decodeFrame(rcv_frame, &function_code, data, &number_of_data_byte);
 		
- 		uint8_t trm_frame[20];
- 		uint8_t number_of_bytes;
+		if (rx_flag >= 11) {
+			receiveFrame(uart_rcv_buffer, rcv_frame);
+			decodeFrame(rcv_frame, &function_code, data, &number_of_data_byte);
+ 			makeFrame(trm_frame, &number_of_bytes, function_code, uart_rcv_buffer, number_of_data_byte);
+			while (sendFrame(trm_frame, number_of_bytes) != 0) {
+				;
+			}
+			u_buf_rcv_cur_pos = 0;
+			rx_flag = 0;
+		}
+		
 		if (1) {
  			makeFrame(trm_frame, &number_of_bytes, function_code, uart_rcv_buffer, number_of_data_byte);
 			while (sendFrame(trm_frame, number_of_bytes) != 0) {
 				;
 			}
-			rx_flag = 0;
 			_delay_ms(1000);
 		}
 		
