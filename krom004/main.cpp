@@ -246,19 +246,14 @@ int main(void)
 		
  		uint8_t trm_frame[20];
  		uint8_t number_of_bytes;
-		 if (rx_flag) {
-			 
- 		makeFrame(trm_frame, &number_of_bytes, function_code, uart_rcv_buffer, number_of_data_byte);
-		
-// 		for (uint32_t i = 0; i < 2000000; i++) {
-// 			;
-// 		}
-// 		
-		while (sendFrame(trm_frame, number_of_bytes) != 0) {
-			;
+		if (1) {
+ 			makeFrame(trm_frame, &number_of_bytes, function_code, uart_rcv_buffer, number_of_data_byte);
+			while (sendFrame(trm_frame, number_of_bytes) != 0) {
+				;
+			}
+			rx_flag = 0;
+			_delay_ms(1000);
 		}
-		rx_flag = 0;
-		 }
 		
 	}
 }

@@ -9,7 +9,7 @@ using System.IO.Ports;
 
 namespace uartProtocolTest
 {
-    unsafe class Program
+    class Program
     {
         // CRC-8 for Dallas iButton products from Maxim/Dallas AP Note 27
         static readonly byte[] crc8Table = new byte[]
@@ -137,13 +137,13 @@ namespace uartProtocolTest
             {
                 frame_b[i] = (byte)frame[i];
             }
-
+            
             port.Write(frame_b, 0, number_of_bytes);
 
-            byte[] buffer = new byte[40];
+            byte[] buffer = new byte[20];
             port.Read(buffer, 0, 20);
 
-            for (int i = 0; i < 40; i++)
+            for (int i = 0; i < 20; i++)
             {
                 Console.WriteLine("Byte #" + i.ToString() + " = " + buffer[i].ToString());
             }

@@ -12,7 +12,7 @@
 
 //driver
 
-uint8_t uart_rcv_buffer[MAX_BUFFER_SIZE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint8_t uart_rcv_buffer[MAX_BUFFER_SIZE] = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint8_t u_buf_rcv_cur_pos = 0;
 uint8_t u_buf_rcv_over = 0;
 
@@ -46,7 +46,7 @@ uint8_t uartReceive(void) {
 void uartReceiveInInterrupt(void) {
 	if (u_buf_rcv_cur_pos >= 20) {
 		u_buf_rcv_over = 1;
-		//u_buf_rcv_cur_pos = 0;
+		u_buf_rcv_cur_pos = 0;
 		return;	//	if receive buffer overload then all receiving bytes will be missed
 	}
 	uart_rcv_buffer[u_buf_rcv_cur_pos] = UDR0;
