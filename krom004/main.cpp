@@ -210,12 +210,11 @@ ISR(TIMER0_COMPA_vect) {	//	interrupt service where postprocessor will be refres
 	doCLK_PUL();			//	signal to make step, if it necessary
 }
 
-ISR(USART_RX_vect) {		//	when uart received byte. It put byte to uart_buffer
-	uartReceiveInInterrupt();
-}
 
-ISR(USART_UDRE_vect) {
-	uartTransmitInInterrupt();
+uint8_t rx_flag = 0;
+ISR(USART_RX_vect) {		//	when uart received byte. It put byte to uart_buffer
+	rx_flag = 1;
+	uartReceiveInInterrupt();
 }
 
 ISR(USART_TX_vect) {
@@ -235,46 +234,31 @@ int main(void)
 	axis_y.findHome();
 	axis_z.findHome();
 	
-	//test of make&send frame
-	uint8_t frame[20];
-
-	uint8_t function_code = 5;
-	uint8_t number_of_data_bytes = 2;
-	uint8_t data[number_of_data_bytes] = {1, 4};
-	uint8_t number_of_bytes;
-	makeFrame(frame, &number_of_bytes, function_code, data, number_of_data_bytes);
-	sendFrame(frame, number_of_bytes);
 	
-	for (uint32_t i = 0; i < 2000000; i++) {
-		;
-	}
-	
-	while (sendFrame(frame, number_of_bytes) != 0) {
-		;
-	}
-	
-	for (uint32_t i = 0; i < 2000000; i++) {
-		;
-	}
-	
-	
-	while (sendFrame(frame, number_of_bytes) != 0) {
-		;
-	}
-	
-	_delay_ms(1000);
-	
-	while (sendFrame(frame, number_of_bytes) != 0) {
-		;
-	}
-	//end of test make&send frame
     while (1) 
     {
-		//_delay_ms(1000);
-		//uartTransmit('\n');
-// 		axis_x.setCoordinate(760);
-// 		_delay_ms(5000);
-// 		axis_x.setCoordinate(0);
-// 		_delay_ms(5000);
+		//uint8_t rcv_frame[20];
+		//receiveFrame(uart_rcv_buffer, rcv_frame);
+		//uint8_t data[20];
+		uint8_t number_of_data_byte = 15;
+		uint8_t function_code = 1;
+		//decodeFrame(rcv_frame, &function_code, data, &number_of_data_byte);
+		
+ 		uint8_t trm_frame[20];
+ 		uint8_t number_of_bytes;
+		 if (rx_flag) {
+			 
+ 		makeFrame(trm_frame, &number_of_bytes, function_code, uart_rcv_buffer, number_of_data_byte);
+		
+// 		for (uint32_t i = 0; i < 2000000; i++) {
+// 			;
+// 		}
+// 		
+		while (sendFrame(trm_frame, number_of_bytes) != 0) {
+			;
+		}
+		rx_flag = 0;
+		 }
+		
 	}
 }

@@ -26,6 +26,7 @@ void uartInit(/*unsigned int m_uiUbrr*/void) {
 	UBRR0L = (unsigned char)m_uiUbrr;
 	
 	UCSR0B = (1<<RXEN0);										//	enable received and transmit
+	UCSR0B |= (1<<RXCIE0);										//	enable receive complete interrupt
 	
 	UCSR0C = (1<<USBS0) | (3<<UCSZ00);							//	set frame format 8data, 2stop bit
 }
@@ -58,14 +59,12 @@ void uartTransmitInInterrupt(void) {
 	if (u_buf_trm_cur_pos > 0) {
 		UDR0 = uart_trm_buffer[u_buf_trm_cur_pos];
 		--u_buf_trm_cur_pos;
-		//UCSR0B |= (1<<UDRIE0);
 		UCSR0B |= (1<<TXCIE0);
 		UCSR0B |= (1<<TXEN0);
 	}
 	else {
-		frame_buffer_state = 0;
+		frame_buffer_state_trm = 0;
 		UCSR0B &= ~(1<<TXCIE0);
-		UCSR0B &= ~(1<<UDRIE0);
 		UCSR0B &= ~(1<<TXEN0);
 	}
 }

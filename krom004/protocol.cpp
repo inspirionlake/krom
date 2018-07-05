@@ -105,12 +105,12 @@ void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code, 
 	frame[index] = end_code;
 }
 
-uint8_t frame_buffer_state = 0;
+uint8_t frame_buffer_state_trm = 0;
 
 uint8_t sendFrame(uint8_t *frame, uint8_t number_of_bytes) {
 	uint8_t i = 0;
-	if (frame_buffer_state == 0) {
-		frame_buffer_state = 1;
+	if (frame_buffer_state_trm == 0) {
+		frame_buffer_state_trm = 1;
 		for (i = 0; i < number_of_bytes; i++) {
 			if (putInTrmBuf(frame[i])) {
 				return 1;	//	frame was loaded in buffer not completely
@@ -138,7 +138,7 @@ uint8_t receiveFrame(uint8_t *buffer, uint8_t *frame) {
 	return 0;		//	all ok
 }
 
-uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data) {
+uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data, uint8_t *number_of_data_bytes) {
 	uint8_t index = 0;
 	if (frame[index] != start_code) {
 		return 1;	//	frame is not correct
@@ -149,10 +149,10 @@ uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data) {
 	
 	++index;	//	set index on number of data bytes
 	uint8_t j = 0;
-	uint8_t number_of_data_bytes = frame[index];
+	*number_of_data_bytes = frame[index];
 	
 	++index;	//	set index on first data byte
-	for (j = 0; j < number_of_data_bytes; j++) {
+	for (j = 0; j < *number_of_data_bytes; j++) {
 		data[j] = frame[index];
 		++index;
 	}
@@ -162,7 +162,7 @@ uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data) {
 	
 	frame[index] = end_code;	//	I'm calculate crc without crc byte, only: start code, function code, number of data bytes, data, end code
 	
-	if (checkCRC(crc, 4 + number_of_data_bytes, frame) == 1) {
+	if (checkCRC(crc, 4 + *number_of_data_bytes, frame) == 1) {
 		return 1;	//	crc error
 	}
 	

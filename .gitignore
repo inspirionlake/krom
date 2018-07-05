@@ -10,3 +10,9 @@ krom004/*.cppproj
 *.lss
 *.map
 *.[oa]
+*.sln
+*.config
+*.csproj
+*bin/
+*Properties/
+*obj/
