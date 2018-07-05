@@ -121,6 +121,8 @@ uint8_t sendFrame(uint8_t *frame, uint8_t number_of_bytes) {
 	}
 	return 2;	//	frame buffer is busy. try load later
 }
+
+uint8_t rx_flag = 0;
 uint8_t receiveFrame(uint8_t *buffer, uint8_t *frame) {
 	uint8_t i = 0;
 	for (i = 0; i < MAX_BUFFER_SIZE; i++) {
@@ -135,6 +137,8 @@ uint8_t receiveFrame(uint8_t *buffer, uint8_t *frame) {
 		frame[j] = buffer[i];
 		++i;
 	}
+	u_buf_rcv_cur_pos = 0;
+	rx_flag = 0;
 	return 0;		//	all ok
 }
 

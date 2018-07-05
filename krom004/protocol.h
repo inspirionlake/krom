@@ -10,6 +10,7 @@
 const uint8_t start_code = 0b10101010;
 const uint8_t end_code = 0b01010101;
 
+extern uint8_t rx_flag;
 extern uint8_t frame_buffer_state_trm;
 extern uint8_t frame_buffer_state_rcv;
 

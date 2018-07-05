@@ -120,9 +120,9 @@ namespace uartProtocolTest
 
             int[] frame = new int[20];
 
-            int function_code = 1;
-            int number_of_data_bytes = 6;
-            int[] data = new int[6] { 1, 4, 3, 2, 1, 0 };
+            int function_code = 255;
+            int number_of_data_bytes = 2;
+            int[] data = new int[2] { 0, 0 };
             int number_of_bytes = 0;
             makeFrame(frame, ref number_of_bytes, function_code, data, number_of_data_bytes);
             Console.WriteLine("number_of_bytes = " + number_of_bytes.ToString());

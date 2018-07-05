@@ -44,6 +44,7 @@ uint8_t uartReceive(void) {
 }
 
 void uartReceiveInInterrupt(void) {
+	rx_flag = 1;
 	if (u_buf_rcv_cur_pos >= 20) {
 		u_buf_rcv_over = 1;
 		u_buf_rcv_cur_pos = 0;

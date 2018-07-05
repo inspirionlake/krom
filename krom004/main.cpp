@@ -211,9 +211,8 @@ ISR(TIMER0_COMPA_vect) {	//	interrupt service where postprocessor will be refres
 }
 
 
-uint8_t rx_flag = 0;
+
 ISR(USART_RX_vect) {		//	when uart received byte. It put byte to uart_buffer
-	++rx_flag;
 	uartReceiveInInterrupt();
 }
 
@@ -246,19 +245,13 @@ int main(void)
     while (1) 
     {
 		
-		if (rx_flag >= 11) {
+		if (rx_flag) {
 			receiveFrame(uart_rcv_buffer, rcv_frame);
 			decodeFrame(rcv_frame, &function_code, data, &number_of_data_byte);
- 			makeFrame(trm_frame, &number_of_bytes, function_code, uart_rcv_buffer, number_of_data_byte);
-			while (sendFrame(trm_frame, number_of_bytes) != 0) {
-				;
-			}
-			u_buf_rcv_cur_pos = 0;
-			rx_flag = 0;
 		}
 		
 		if (1) {
- 			makeFrame(trm_frame, &number_of_bytes, function_code, uart_rcv_buffer, number_of_data_byte);
+ 			makeFrame(trm_frame, &number_of_bytes, function_code, data, number_of_data_byte);
 			while (sendFrame(trm_frame, number_of_bytes) != 0) {
 				;
 			}
