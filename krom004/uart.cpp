@@ -12,7 +12,7 @@
 
 //driver
 
-uint8_t uart_rcv_buffer[MAX_BUFFER_SIZE] = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint8_t uart_rcv_buffer[MAX_BUFFER_SIZE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint8_t u_buf_rcv_cur_pos = 0;
 uint8_t u_buf_rcv_over = 0;
 

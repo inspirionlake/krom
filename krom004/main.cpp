@@ -36,6 +36,7 @@
 
 #include "uart.h"
 #include "protocol.h"
+#include "setOfFunction.h"
 
 enum axis_name {X = 0, Y, Z};
 
@@ -225,10 +226,7 @@ int main(void)
 	uartInit();
 	portsInit();
 	
-	char version[11] = "Krom v004\n";
-	uartTransmitString(version);
-	
-	timerInit();
+	timerInit();	
 	axis_x.findHome();
 	axis_y.findHome();
 	axis_z.findHome();
@@ -237,26 +235,61 @@ int main(void)
 	uint8_t data[20];
 	
 	uint8_t number_of_data_byte = 0;
-	uint8_t function_code = 1;
+	uint8_t function_code = 0;
 	
 	
 	uint8_t trm_frame[20];
 	uint8_t number_of_bytes;
+	
+	uint8_t function_executing_flag = 0;
+	uint8_t flag = 0;
     while (1) 
-    {
-		
+    {		
 		if (rx_flag) {
 			receiveFrame(uart_rcv_buffer, rcv_frame);
 			decodeFrame(rcv_frame, &function_code, data, &number_of_data_byte);
+			flag = 0;
 		}
 		
-		if (1) {
+		for (uint32_t i = 0; i < 20000; i++) {
+			;
+		}
+		
+		if (flag) {
+			flag = 0;
  			makeFrame(trm_frame, &number_of_bytes, function_code, data, number_of_data_byte);
 			while (sendFrame(trm_frame, number_of_bytes) != 0) {
 				;
 			}
-			_delay_ms(1000);
 		}
-		
+
+		if (!function_executing_flag) {
+			switch(function_code) {
+				function_executing_flag = 1;
+				case 0: {
+					//
+					break;
+				}
+				case ECHO: {
+					functionEcho();
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case REPEAT: {
+					functionRepeat();
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				default: {
+					functionRepeat();
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+					
+				}
+			}
+		}
 	}
 }
