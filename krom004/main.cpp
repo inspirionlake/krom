@@ -32,70 +32,11 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
-#include <stdlib.h>
 
 #include "uart.h"
 #include "protocol.h"
 #include "setOfFunction.h"
-
-enum axis_name {X = 0, Y, Z};
-
-class Axis {
-	private:
-	int32_t coordinate;
-	uint8_t microstep;
-	uint8_t name;		// 0 - x, 1 - y, 2 - z
-	uint8_t busy;
-	double value_of_division;	
-	public:
-	uint8_t direction;
-	uint8_t enable;
-	uint32_t step;		//	example: 1 step = 10um
-	Axis(uint8_t nm, uint8_t en, uint8_t dir, uint16_t stp, uint8_t microstp, double val_of_div) {
-		step = stp;
-		microstep = microstp;
-		name = nm;
-		enable = en;
-		direction = dir;
-		value_of_division = val_of_div;
-		busy = 0;
-	}
-	int32_t getCoordinate(void) {
-		return coordinate;
-	}
-	void findHome(void) {
-		//finding home...
-		coordinate = 0;
-	}
-	void setCoordinate(int32_t value) {
-		if (coordinate < value) {
-			direction = 0;
-		}
-		if (coordinate > value) {
-			direction = 1;
-		}
-		int32_t different = abs(value - coordinate);
-		//printValue(different);
-		double tmp = different / value_of_division;
-		//char buff[10];
-		//dtostrf(tmp,6,9,buff);
-		//uartTransmitString(buff);
-		//uartTransmit('\n');
-		uint32_t steps = (uint32_t)tmp;
-		//printValue(steps);
-		step = steps;
-		//printValue(step);
-		coordinate = value;
-		//printValue(coordinate);
-	}
-	void release() {
-		busy = 0;
-	}
-	uint8_t status(void) {
-		return busy;
-	}
-	protected:
-};
+#include "positioning.h"
 
 Axis axis_x(X, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep, value_of_division
 Axis axis_y(Y, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep
@@ -212,7 +153,6 @@ ISR(TIMER0_COMPA_vect) {	//	interrupt service where postprocessor will be refres
 }
 
 
-
 ISR(USART_RX_vect) {		//	when uart received byte. It put byte to uart_buffer
 	uartReceiveInInterrupt();
 }
@@ -278,6 +218,12 @@ int main(void)
 				}
 				case REPEAT: {
 					functionRepeat();
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case GET_COORDINATE_XY: {
+					//functionGetCoordinateXY(&axis_x, &axis_y);
 					function_code = 0;
 					function_executing_flag = 0;
 					break;

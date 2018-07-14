@@ -5,7 +5,6 @@
  *  Author: Dmitry
  */ 
 
-
 #ifndef SETOFFUNCTION_H_
 #define SETOFFUNCTION_H_
 
@@ -19,7 +18,7 @@
 void functionEcho(void);
 void functionOK(void);
 void functionRepeat(void);
-void functionGetCoordinateXY(void);
+void functionGetCoordinateXY(/*Axis *ax_x, Axis *ax_y*/);
 
 
 #endif /* SETOFFUNCTION_H_ */

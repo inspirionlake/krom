@@ -38,15 +38,27 @@ void functionRepeat(void) {
 	sendFrame(frame_repeat, number_of_bytes_repeat);
 }
 
-void functionGetCoordinateXY(Axis *ax_x, Axis *ax_y) {
+void functionGetCoordinateXY(/*Axis *ax_x, Axis *ax_y*/) {	//	check on hardware 15.07.18
 	uint8_t frame_getCoordinateXY[13];
 	uint8_t number_of_bytes_getCoordinateXY;
 	uint8_t data_getCoordinateXY[8];
 	uint8_t number_of_data_bytes_getCoordinateXY = 8;
 		
 	// You should put coordinates of axises into data_getCoordinateXY... 
-	//int32_t coordinate_x = ax_x->getCoordinate();
-	//int32_t coordinate_y = ax_y->getCoordinate();
+// 	int32_t coordinate_x = ax_x->getCoordinate();
+// 	int32_t coordinate_y = ax_y->getCoordinate();
+// 	
+// 	uint8_t index = 0;
+// 	int32_t mask = 255;
+// 	for (index = 3; index >= 0; index--) {
+// 		data_getCoordinateXY[index] = coordinate_x | mask;
+// 		coordinate_x =  coordinate_x >> 8;
+// 	}
+// 	
+// 	for (index = 7; index >= 4; index--) {
+// 		data_getCoordinateXY[index] = coordinate_y | mask;
+// 		coordinate_y = coordinate_y >> 8;
+// 	}
 	
 	makeFrame(frame_getCoordinateXY, &number_of_bytes_getCoordinateXY, GET_COORDINATE_XY, data_getCoordinateXY, number_of_data_bytes_getCoordinateXY);
 	sendFrame(frame_getCoordinateXY, number_of_bytes_getCoordinateXY);
