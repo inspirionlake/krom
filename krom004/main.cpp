@@ -183,6 +183,7 @@ int main(void)
 	
 	uint8_t function_executing_flag = 0;
 	uint8_t flag = 0;
+	
     while (1) 
     {		
 		if (rx_flag) {
@@ -223,7 +224,55 @@ int main(void)
 					break;
 				}
 				case GET_COORDINATE_XY: {
-					//functionGetCoordinateXY(&axis_x, &axis_y);
+					functionGetCoordinateXY(&axis_x, &axis_y);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case GET_COORDINATE_Z: {
+					functionGetCoordinateZ(&axis_z);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_COORDINATE_XY: {
+					functionSetCoordinateXY(&axis_x, &axis_y, data, number_of_data_byte);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_COORDINATE_Z: {
+					functionSetCoordinateZ(&axis_z, data, number_of_data_byte);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_ENGINE: {
+					functionSetEngine(&axis_x, &axis_y, &axis_z, data, number_of_data_byte);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_VAL_DIV_X: {
+					functionSetValueOfDivisionX(&axis_x, data, number_of_data_byte);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_VAL_DIV_Y: {
+					functionSetValueOfDivisionY(&axis_y, data, number_of_data_byte);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_VAL_DIV_Z: {
+					functionSetValueOfDivisionZ(&axis_z, data, number_of_data_byte);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case GO_HOME: {
+					functionGoHome(&axis_x, &axis_y, &axis_z);
 					function_code = 0;
 					function_executing_flag = 0;
 					break;

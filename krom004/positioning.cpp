@@ -56,3 +56,7 @@ void Axis::release(void) {
 uint8_t Axis::status(void) {
 	return busy;
 }
+
+void Axis::setValueOfDivision(double newValOfDiv) {
+	value_of_division = newValOfDiv;
+}

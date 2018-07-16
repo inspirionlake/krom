@@ -7,6 +7,8 @@
 #ifndef POSITIONING_H_
 #define POSITIONING_H_
 
+#include <stdint.h>
+
 enum axis_name {X = 0, Y, Z};
 	
 class Axis {
@@ -33,6 +35,8 @@ class Axis {
 	void release(void);
 	
 	uint8_t status(void);
+	
+	void setValueOfDivision(double newValOfDiv);
 	};
 
 #endif /* POSITIONING_H_ */
