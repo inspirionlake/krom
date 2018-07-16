@@ -11,7 +11,7 @@
 #define MAX_STEP_COUNTS_Z 10000
 //MOVEMENT
 
-#define BAUDRATE 115200
+#define BAUDRATE 9600
 #define F_CPU 16000000UL
 
 #define X_PUL_D 2	//PORTD
@@ -37,6 +37,7 @@
 #include "protocol.h"
 #include "setOfFunction.h"
 #include "positioning.h"
+#include "hall_handler.h"
 
 Axis axis_x(X, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep, value_of_division
 Axis axis_y(Y, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep
@@ -165,11 +166,12 @@ int main(void)
 {
 	uartInit();
 	portsInit();
+	initAdc();
 	
 	timerInit();	
-	axis_x.findHome();
-	axis_y.findHome();
-	axis_z.findHome();
+	//axis_x.findHome();
+	//axis_y.findHome();
+	//axis_z.findHome();
 	
 	uint8_t rcv_frame[20];
 	uint8_t data[20];

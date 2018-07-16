@@ -7,6 +7,7 @@
 #include <avr/io.h>
 #include <stdlib.h>
 #include "positioning.h"
+#include "hall_handler.h"
 
 Axis::Axis(uint8_t nm, uint8_t en, uint8_t dir, uint16_t stp, uint8_t microstp, double val_of_div) {
 	step = stp;
@@ -25,6 +26,12 @@ int32_t Axis::getCoordinate(void) {
 void Axis::findHome(void) {
 	//finding home...
 	coordinate = 0;
+	uint8_t hall_value = 0;
+	uint8_t flag_finded = 0;
+	while (!flag_finded) {
+		refreshHallValue(name, &hall_value);
+		// complete this handler... you should identify a feature of home point
+	}
 }
 
 void Axis::setCoordinate(int32_t value) {
