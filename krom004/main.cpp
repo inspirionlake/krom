@@ -79,29 +79,29 @@ void doCLK(void) {
 	_delay_us(2);
 }
 
-void doCLK_PUL(void) {
-	if (axis_x.step > 0) {
+void doCLK_PUL(void) {				
+	if (axis_x.step) {				//	Comparing with zero replaced on just variable
 		PORTD |= (1<<X_PUL_D);
 		axis_x.step--;
 	}
 	else {
 		PORTD &= ~(1<<X_PUL_D);
 	}
-	if (axis_y.step > 0) {
+	if (axis_y.step) {				//	Comparing with zero replaced on just variable
 		PORTD |= (1<<Y_PUL_D);
 		axis_y.step--;
 	}
 	else {
 		PORTD &= ~(1<<Y_PUL_D);
 	}
-	if (axis_z.step > 0) {
+	if (axis_z.step) {				//	Comparing with zero replaced on just variable
 		PORTD |= (1<<Z_PUL_D);
 		axis_z.step--;
 	}
 	else {
 		PORTD &= ~(1<<Z_PUL_D);
 	}
-	if ((axis_x.step == 0) && (axis_y.step == 0) && (axis_z.step == 0) && (function_executing_flag == 1)) {
+	if ((axis_x.step) && (axis_y.step) && (axis_z.step) && (function_executing_flag)) {		//	Comparing with zero replaced on just variable
 		finish_all_steps_flag = 1;
 	}
 	//_delay_us(10);				//	maybe this string can be omitted?
@@ -185,7 +185,8 @@ void refreshOutput() {
 		}
 	}
 }
-	
+
+//	How long this interrupt work?
 ISR(TIMER0_COMPA_vect) {	//	interrupt service where postprocessor will be refresh
 	refreshOutput();		//	here execute function which refresh outputs on MCU for EN&DIR
 	doCLK();				//	data set on driver's outputs EN_DIR (MCU send his commands on postprocessor)
@@ -223,14 +224,14 @@ int main(void)
 // 	uint8_t number_of_bytes;
 	
     while (1) 
-    {		
-		asm("LDS R24,0x0233");
+    {	
+		asm("LDS R24,0x0233"); //	Why this string is necessary?
 		if (rx_flag) {
 			receiveFrame(uart_rcv_buffer, rcv_frame);
 			decodeFrame(rcv_frame, &function_code, data, &number_of_data_byte);
 		}
 		
-		uint16_t i = 0;
+		uint16_t i = 0;						//	Why this operation is necessary?
 		for (i = 0; i < 20000; i++) {
 			;
 		}
@@ -247,7 +248,7 @@ int main(void)
  			function_executing_flag = 0;
  			finish_all_steps_flag = 0;
  			function_code = 0;
- 			answerFinishCommand(ANSW_FIN_COM);
+ 			answerFinishCommand(ANSW_FIN_COM);		//	Maybe if ANSW_FIN_COM replace on function_code, function will return function_code of last received function.
  		}
 
 		
