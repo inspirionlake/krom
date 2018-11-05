@@ -19,8 +19,7 @@
   Revert: false
   XorOut: 0x00
   Check : 0xF7 ("123456789")
-  MaxLen: 15 байт (127 бит) - обнаружение
-    одинарных, двойных, тройных и всех нечетных ошибок
+  MaxLen: 15
 */
 
 const unsigned char Crc8Table[256] = {
@@ -78,13 +77,13 @@ uint8_t checkCRC(uint8_t rec_crc, uint8_t frameLength, uint8_t *frame) {
 	}
 }
 
-void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code, uint8_t *data, uint8_t number_of_data_bytes) {
+void makeFrame(uint8_t *frame, uint8_t *number_of_bytes, uint8_t function_code_l, uint8_t *data, uint8_t number_of_data_bytes) {
 	*number_of_bytes = 5 + number_of_data_bytes;	//	start_code(1) + function_code(1) + number_of_data_bytes + CRC(1) + end_code(1) + data = 5 + data
 	uint8_t index = 0;
 	frame[index] = start_code;
 	
 	++index;
-	frame[index] = function_code;
+	frame[index] = function_code_l;
 	
 	++index;
 	frame[index] = number_of_data_bytes;
@@ -164,9 +163,9 @@ uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data, uint8
 	//	now index on crc byte
 	uint8_t crc = frame[index];
 	
-	frame[index] = end_code;	//	I'm calculate crc without crc byte, only: start code, function code, number of data bytes, data, end code
+	frame[index] = end_code;	//	Calculating crc without crc byte, only: start code, function code, number of data bytes, data, end code
 	
-	if (checkCRC(crc, 4 + *number_of_data_bytes, frame) == 1) {
+	if (checkCRC(crc, 4 + *number_of_data_bytes, frame) == 0) {
 		return 1;	//	crc error
 	}
 	
