@@ -7,6 +7,10 @@
 #include "setOfFunction.h"
 #include "uart.h"
 #include "protocol.h"
+#include <avr/interrupt.h>
+
+uint8_t function_executing_flag = 0;
+uint8_t finish_all_steps_flag = 0;
 
 void answerExecuteCommand(uint8_t function_code) {	//	notified the master of the execution command <function_code>
 	uint8_t frame_ExecuteCommand[6];
@@ -102,24 +106,39 @@ void functionGetCoordinateZ(Axis *ax_z) {
 	sendFrame(frame_getCoordinateZ, number_of_bytes_getCoordinateZ);
 }
 
-void functionSetCoordinateXY(Axis *ax_x, Axis *ax_y, uint8_t *data, uint8_t number_of_data_byte) {	
-	int32_t coordinate_x = 0;
-	int32_t coordinate_y = 0;
+void functionSetStepsXY(Axis *ax_x, Axis *ax_y, uint8_t *data, uint8_t number_of_data_byte) {	
+	cli();
+	int32_t steps_x = 0;
+	int32_t steps_y = 0;
+	int8_t dir_x = 0;
+	int8_t dir_y = 0;
 	int8_t index = 0;
 	
-	for (index = 0; index < 4; index++) {
-		coordinate_x = coordinate_x << 8;
-		coordinate_x |= data[index];
+	dir_x = data[0];
+	if (dir_x == 1) {
+		dir_x = 0;
 	}
-	for (index = 4; index < 8; index++) {
-		coordinate_y = coordinate_y << 8;
-		coordinate_y |= data[index];
+	else {
+		dir_x = 1;
+	}
+	for (index = 1; index < 4; index++) {
+		steps_x = steps_x << 8;
+		steps_x |= data[index];
 	}
 	
-	ax_x->setCoordinate(coordinate_x);
-	ax_y->setCoordinate(coordinate_y);
+	dir_y = data[4];
+	for (index = 5; index < 8; index++) {
+		steps_y = steps_y << 8;
+		steps_y |= data[index];
+	}
 	
-	answerExecuteCommand(SET_COORDINATE_XY);	
+	ax_x->setDirection(dir_x);
+	ax_y->setDirection(dir_y);
+	
+	ax_x->setStep(steps_x);
+	ax_y->setStep(steps_y);
+	sei();
+	//answerExecuteCommand(SET_COORDINATE_XY);	
 } 
 
 void functionSetCoordinateZ(Axis *ax_z, uint8_t *data, uint8_t number_of_data_byte) {
@@ -133,7 +152,7 @@ void functionSetCoordinateZ(Axis *ax_z, uint8_t *data, uint8_t number_of_data_by
 	
 	ax_z->setCoordinate(coordinate_z);
 	
-	answerExecuteCommand(SET_COORDINATE_XY);	
+	answerExecuteCommand(SET_COORDINATE_Z);	
 }
 
 void functionSetEngine(Axis *ax_x, Axis *ax_y, Axis *ax_z, uint8_t *data, uint8_t number_of_data_byte) {	
@@ -177,7 +196,66 @@ void functionSetValueOfDivisionZ(Axis *ax_z, uint8_t  *data, uint8_t number_of_d
 
 void functionGoHome(Axis *ax_x, Axis *ax_y, Axis *ax_z) {
 	ax_x->findHome();
-	ax_y->findHome();
-	ax_z->findHome();
+	//ax_y->findHome();
+	//ax_z->findHome();
 	answerFinishCommand(GO_HOME);
+}
+
+void functionSetStpUpX(Axis *ax_x) {
+	cli();
+	ax_x->setDirection(0);
+	ax_x->setStep(6000);
+	sei();
+}
+
+void functionSetStpDownX(Axis *ax_x) {
+	cli();
+	ax_x->setDirection(1);
+	ax_x->setStep(6000);
+	sei();
+}
+
+void functionSetStpUpY(Axis *ax_y) {
+	cli();
+	ax_y->setDirection(1);
+	ax_y->setStep(6000);
+	sei();
+}
+
+void functionSetStpDownY(Axis *ax_y) {
+	cli();
+	ax_y->setDirection(0);
+	ax_y->setStep(6000);
+	sei();
+}
+
+void functionSetStpUpZ(Axis *ax_z) {
+	cli();
+	ax_z->setDirection(1);
+	ax_z->setStep(24000);
+	sei();
+}
+
+void functionSetStpDownZ(Axis *ax_z) {
+	cli();
+	ax_z->setDirection(0);
+	ax_z->setStep(24000);
+	sei();
+}
+
+void functionEmergencyStop(Axis *ax_x, Axis *ax_y, Axis *ax_z) {
+	TIMSK0 &= ~(1<<OCIE0A);		//	turn off timer interrupts
+	cli();
+	
+	ax_x->setStep(0);
+	ax_x->setDirection(1);
+	
+	ax_y->setStep(0);
+	ax_y->setDirection(0);
+	
+	ax_z->setStep(0);
+	ax_z->setDirection(1);
+	
+	TIMSK0 |= (1<<OCIE0A);		//	turn on timer interrupts
+	sei();
 }

@@ -19,8 +19,7 @@
   Revert: false
   XorOut: 0x00
   Check : 0xF7 ("123456789")
-  MaxLen: 15 байт (127 бит) - обнаружение
-    одинарных, двойных, тройных и всех нечетных ошибок
+  MaxLen: 15
 */
 
 const unsigned char Crc8Table[256] = {
@@ -164,9 +163,9 @@ uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data, uint8
 	//	now index on crc byte
 	uint8_t crc = frame[index];
 	
-	frame[index] = end_code;	//	I'm calculate crc without crc byte, only: start code, function code, number of data bytes, data, end code
+	frame[index] = end_code;	//	Calculating crc without crc byte, only: start code, function code, number of data bytes, data, end code
 	
-	if (checkCRC(crc, 4 + *number_of_data_bytes, frame) == 1) {
+	if (checkCRC(crc, 4 + *number_of_data_bytes, frame) == 0) {
 		return 1;	//	crc error
 	}
 	

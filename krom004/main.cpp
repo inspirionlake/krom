@@ -39,8 +39,8 @@
 #include "positioning.h"
 #include "hall_handler.h"
 
-Axis axis_x(X, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep, value_of_division
-Axis axis_y(Y, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep
+Axis axis_x(X, 0, 0, 10, 32, 0.15);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep, value_of_division 0.00155
+Axis axis_y(Y, 0, 0, 10, 32, 0.1);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep
 Axis axis_z(Z, 0, 0, 10, 32, 0.00155);	//	uint8_t name, uint8_t en, uint8_t dir, uint16_t step, uint8_t microstep
 
 void timerInit(void) {			//	timer for postprocessor refresh
@@ -48,7 +48,7 @@ void timerInit(void) {			//	timer for postprocessor refresh
 	TCCR0A |= (1<<WGM01);		//	CTC mode
 	TCCR0B |= (1<<CS01);		//	prescaller set as 8
 	TIMSK0 |= (1<<OCIE0A);
-	OCR0A = 73;					//	freq = 16MHz/(2*8*(1+73)) = 13.5kHz
+	OCR0A = 73;					//	freq = 16MHz/(2*8*(1+73)) = 13.5kHz was 73
 	sei();
 }
 
@@ -101,49 +101,88 @@ void doCLK_PUL(void) {
 	else {
 		PORTD &= ~(1<<Z_PUL_D);
 	}
-	_delay_us(10);				//	maybe this string can be omitted?
+	if ((axis_x.step == 0) && (axis_y.step == 0) && (axis_z.step == 0) && (function_executing_flag == 1)) {
+		finish_all_steps_flag = 1;
+	}
+	//_delay_us(10);				//	maybe this string can be omitted?
 	PORTB ^= (1<<CLK_PUL);
 }
 
 void refreshOutput() {
 	//ENABLE CONFIG
 	if (axis_x.enable) {
-		PORTD |= (1<<X_ENA_D);
+		if (axis_x.enable_changed) {
+			PORTD |= (1<<X_ENA_D);
+			axis_x.enable_changed = 0;
+		}
 	}
 	else {
-		PORTD &= ~(1<<X_ENA_D);
+		if (axis_x.enable_changed) {
+			PORTD &= ~(1<<X_ENA_D);	
+			axis_x.enable_changed = 0;
+		}
 	}
 	if (axis_y.enable) {
-		PORTD |= (1<<Y_ENA_D);
+		if (axis_y.enable_changed) {
+			PORTD |= (1<<Y_ENA_D);
+			axis_y.enable_changed = 0;
+		}
 	}
 	else {
-		PORTD &= ~(1<<Y_ENA_D);
+		if (axis_y.enable_changed) {
+			PORTD &= ~(1<<Y_ENA_D);
+			axis_y.enable_changed = 0;
+		}
 	}
 	if (axis_z.enable) {
-		PORTD |= (1<<Z_ENA_D);
+		if (axis_z.enable_changed) {
+			PORTD |= (1<<Z_ENA_D);
+			axis_z.enable_changed = 0;
+		}
 	}
 	else {
-		PORTD &= ~(1<<Z_ENA_D);
+		if (axis_z.enable_changed) {
+			PORTD &= ~(1<<Z_ENA_D);
+			axis_z.enable_changed = 0;
+		}
 	}
 	
 	//DIRECTION CONFIG
 	if (axis_x.direction) {
-		PORTB &= ~(1<<X_DIR_D);
+		if (axis_x.direction_changed) {
+			PORTB &= ~(1<<X_DIR_D);
+			axis_x.direction_changed = 0;	
+		}
 	}
 	else {
-		PORTB |= (1<<X_DIR_D);
+		if (axis_x.direction_changed) {
+			PORTB |= (1<<X_DIR_D);
+			axis_x.direction_changed = 0;
+		}
 	}
 	if (axis_y.direction) {
-		PORTB &= ~(1<<Y_DIR_D);
+		if (axis_y.direction_changed) {
+			PORTB &= ~(1<<Y_DIR_D);
+			axis_y.direction_changed = 0;	
+		}
 	}
 	else {
-		PORTB |= (1<<Y_DIR_D);
+		if (axis_y.direction_changed) {
+			PORTB |= (1<<Y_DIR_D);
+			axis_y.direction_changed = 0;
+		}
 	}
 	if (axis_z.direction) {
-		PORTB &= ~(1<<Z_DIR_D);
+		if (axis_z.direction_changed) {
+			PORTB &= ~(1<<Z_DIR_D);
+			axis_z.direction_changed  = 0;	
+		}
 	}
 	else {
-		PORTB |= (1<<Z_DIR_D);
+		if (axis_z.direction_changed) {
+			PORTB |= (1<<Z_DIR_D);	
+			axis_z.direction_changed = 0;
+		}
 	}
 }
 	
@@ -168,10 +207,8 @@ int main(void)
 	portsInit();
 	initAdc();
 	
-	timerInit();	
-	//axis_x.findHome();
-	//axis_y.findHome();
-	//axis_z.findHome();
+	timerInit();
+	sei();
 	
 	uint8_t rcv_frame[20];
 	uint8_t data[20];
@@ -179,38 +216,50 @@ int main(void)
 	uint8_t number_of_data_byte = 0;
 	uint8_t function_code = 0;
 	
+	function_executing_flag = 0;
 	
-	uint8_t trm_frame[20];
-	uint8_t number_of_bytes;
-	
-	uint8_t function_executing_flag = 0;
-	uint8_t flag = 0;
+// 	uint8_t flag = 0;
+// 	uint8_t trm_frame[20];
+// 	uint8_t number_of_bytes;
 	
     while (1) 
     {		
+		asm("LDS R24,0x0233");
 		if (rx_flag) {
 			receiveFrame(uart_rcv_buffer, rcv_frame);
 			decodeFrame(rcv_frame, &function_code, data, &number_of_data_byte);
-			flag = 0;
 		}
 		
-		for (uint32_t i = 0; i < 20000; i++) {
+		uint16_t i = 0;
+		for (i = 0; i < 20000; i++) {
 			;
 		}
 		
-		if (flag) {
-			flag = 0;
- 			makeFrame(trm_frame, &number_of_bytes, function_code, data, number_of_data_byte);
-			while (sendFrame(trm_frame, number_of_bytes) != 0) {
-				;
-			}
-		}
+// 		if (flag) {
+// 			flag = 0;
+// 			makeFrame(trm_frame, &number_of_bytes, function_code, data, number_of_data_byte);
+// 			while (sendFrame(trm_frame, number_of_bytes) != 0) {
+// 				;
+// 			}
+// 		}
 
+ 		if (finish_all_steps_flag == 1) {
+ 			function_executing_flag = 0;
+ 			finish_all_steps_flag = 0;
+ 			function_code = 0;
+ 			answerFinishCommand(ANSW_FIN_COM);
+ 		}
+
+		
 		if (!function_executing_flag) {
 			switch(function_code) {
-				function_executing_flag = 1;
 				case 0: {
-					//
+					break;	
+				}
+				case EMERGENCY_STOP: {
+					functionEmergencyStop(&axis_x, &axis_y, &axis_z);
+					function_code = 0;
+					function_executing_flag = 0;
 					break;
 				}
 				case ECHO: {
@@ -237,10 +286,10 @@ int main(void)
 					function_executing_flag = 0;
 					break;
 				}
-				case SET_COORDINATE_XY: {
-					functionSetCoordinateXY(&axis_x, &axis_y, data, number_of_data_byte);
+				case SET_STEPS_XY: {
+					functionSetStepsXY(&axis_x, &axis_y, data, number_of_data_byte);
 					function_code = 0;
-					function_executing_flag = 0;
+					function_executing_flag = 1;
 					break;
 				}
 				case SET_COORDINATE_Z: {
@@ -279,12 +328,47 @@ int main(void)
 					function_executing_flag = 0;
 					break;
 				}
+				case SET_STP_X_UP: {
+					functionSetStpUpX(&axis_x);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_STP_X_DOWN: {
+					functionSetStpDownX(&axis_x);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_STP_Y_UP: {
+					functionSetStpUpY(&axis_y);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_STP_Y_DOWN: {
+					functionSetStpDownY(&axis_y);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_STP_Z_UP: {
+					functionSetStpUpZ(&axis_z);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
+				case SET_STP_Z_DOWN: {
+					functionSetStpDownZ(&axis_z);
+					function_code = 0;
+					function_executing_flag = 0;
+					break;
+				}
 				default: {
 					functionRepeat();
 					function_code = 0;
 					function_executing_flag = 0;
 					break;
-					
 				}
 			}
 		}

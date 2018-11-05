@@ -21,8 +21,10 @@ class Axis {
 	
 	public:
 	uint8_t direction;
+	uint8_t direction_changed;
 	uint8_t enable;
-	uint32_t step;		//	example: 1 step = 10um
+	uint8_t enable_changed;
+	uint64_t step;		//	example: 1 step = 10um
 	
 	Axis(uint8_t nm, uint8_t en, uint8_t dir, uint16_t stp, uint8_t microstp, double val_of_div);
 	
@@ -31,6 +33,12 @@ class Axis {
 	void findHome(void);
 	
 	void setCoordinate(int32_t value);
+	
+	void setStep(uint32_t value);
+	
+	void setDirection(uint8_t dir);
+	
+	void setEnable(uint8_t en);
 	
 	void release(void);
 	

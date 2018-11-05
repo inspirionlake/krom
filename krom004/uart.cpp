@@ -25,8 +25,11 @@ void uartInit(/*unsigned int m_uiUbrr*/void) {
 	UBRR0H = (unsigned char)(m_uiUbrr>>8);						//	set baud rate
 	UBRR0L = (unsigned char)m_uiUbrr;
 	
-	UCSR0B = (1<<RXEN0);										//	enable received and transmit
+	UCSR0B = (1<<RXEN0);										//	enable receiving
 	UCSR0B |= (1<<RXCIE0);										//	enable receive complete interrupt
+	
+	UCSR0B |= (1<<TXEN0);										//	enable transmitting
+	UCSR0B |= (1<<TXCIE0);										//	enable transmit complete interrupt
 	
 	UCSR0C = (1<<USBS0) | (3<<UCSZ00);							//	set frame format 8data, 2stop bit
 }
@@ -68,8 +71,8 @@ void uartTransmitInInterrupt(void) {
 		sending_pos = 0;
 		u_buf_trm_cur_pos = 0;
 		frame_buffer_state_trm = 0;
-		UCSR0B &= ~(1<<TXCIE0);
-		UCSR0B &= ~(1<<TXEN0);
+// 		UCSR0B &= ~(1<<TXCIE0);
+// 		UCSR0B &= ~(1<<TXEN0);
 	}
 }
 
