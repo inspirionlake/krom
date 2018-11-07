@@ -48,7 +48,7 @@ void timerInit(void) {			//	timer for postprocessor refresh
 	TCCR0A |= (1<<WGM01);		//	CTC mode
 	TCCR0B |= (1<<CS01);		//	prescaller set as 8
 	TIMSK0 |= (1<<OCIE0A);
-	OCR0A = 73;					//	freq = 16MHz/(2*8*(1+73)) = 13.5kHz was 73
+	OCR0A = 79;					//	freq = 16MHz/(2*8*(1+73)) = 12.5kHz WARNING: MAX FREQUENCY FOR DRIVER 15kHz
 	sei();
 }
 
@@ -74,13 +74,13 @@ void portsInit(void) {
 
 void doCLK(void) {
 	PORTB |= (1<<CLK);
-	_delay_us(2) ;
+	_delay_us(1) ;
 	PORTB &= ~(1<<CLK);
-	_delay_us(2);
+	_delay_us(1);
 }
 
 void doCLK_PUL(void) {				
-	if (axis_x.step) {				//	Comparing with zero replaced on just variable
+	if (axis_x.step) {		
 		PORTD |= (1<<X_PUL_D);
 		axis_x.step--;
 	}
@@ -88,60 +88,65 @@ void doCLK_PUL(void) {
 		PORTD &= ~(1<<X_PUL_D);
 	}
 
-	if (axis_y.step) {				//	Comparing with zero replaced on just variable
+	if (axis_y.step) {				
 		PORTD |= (1<<Y_PUL_D);
 		axis_y.step--;
 	}
 	else {
 		PORTD &= ~(1<<Y_PUL_D);
 	}
-	if (axis_z.step) {				//	Comparing with zero replaced on just variable
+	if (axis_z.step) {				
 		PORTD |= (1<<Z_PUL_D);
 		axis_z.step--;
 	}
 	else {
 		PORTD &= ~(1<<Z_PUL_D);
 	}
-	if ((axis_x.step) && (axis_y.step) && (axis_z.step) && (function_executing_flag)) {		//	Comparing with zero replaced on just variable
+	if ((!axis_x.step) && (!axis_y.step) && (!axis_z.step) && (function_executing_flag)) {		
 		finish_all_steps_flag = 1;
 	}
-	//_delay_us(10);				//	maybe this string can be omitted?
 	PORTB ^= (1<<CLK_PUL);
 }
 
 void refreshOutput() {
 	//ENABLE CONFIG
 	if (axis_x.enable) {
+//		PORTD |= (1<<X_ENA_D);
 		if (axis_x.enable_changed) {
 			PORTD |= (1<<X_ENA_D);
 			axis_x.enable_changed = 0;
 		}
 	}
 	else {
+//		PORTD &= ~(1<<X_ENA_D);	
 		if (axis_x.enable_changed) {
 			PORTD &= ~(1<<X_ENA_D);	
 			axis_x.enable_changed = 0;
 		}
 	}
 	if (axis_y.enable) {
+//		PORTD |= (1<<Y_ENA_D);
 		if (axis_y.enable_changed) {
 			PORTD |= (1<<Y_ENA_D);
 			axis_y.enable_changed = 0;
 		}
 	}
 	else {
+//		PORTD &= ~(1<<Y_ENA_D);
 		if (axis_y.enable_changed) {
 			PORTD &= ~(1<<Y_ENA_D);
 			axis_y.enable_changed = 0;
 		}
 	}
 	if (axis_z.enable) {
+//		PORTD |= (1<<Z_ENA_D);
 		if (axis_z.enable_changed) {
 			PORTD |= (1<<Z_ENA_D);
 			axis_z.enable_changed = 0;
 		}
 	}
 	else {
+//		PORTD &= ~(1<<Z_ENA_D);		
 		if (axis_z.enable_changed) {
 			PORTD &= ~(1<<Z_ENA_D);
 			axis_z.enable_changed = 0;
@@ -150,36 +155,42 @@ void refreshOutput() {
 	
 	//DIRECTION CONFIG
 	if (axis_x.direction) {
+//		PORTB &= ~(1<<X_DIR_D);
 		if (axis_x.direction_changed) {
 			PORTB &= ~(1<<X_DIR_D);
 			axis_x.direction_changed = 0;	
 		}
 	}
 	else {
+//		PORTB |= (1<<X_DIR_D);
 		if (axis_x.direction_changed) {
 			PORTB |= (1<<X_DIR_D);
 			axis_x.direction_changed = 0;
 		}
 	}
 	if (axis_y.direction) {
+//		PORTB &= ~(1<<Y_DIR_D);
 		if (axis_y.direction_changed) {
 			PORTB &= ~(1<<Y_DIR_D);
 			axis_y.direction_changed = 0;	
 		}
 	}
 	else {
+//		PORTB |= (1<<Y_DIR_D);
 		if (axis_y.direction_changed) {
 			PORTB |= (1<<Y_DIR_D);
 			axis_y.direction_changed = 0;
 		}
 	}
 	if (axis_z.direction) {
+//		PORTB &= ~(1<<Z_DIR_D);
 		if (axis_z.direction_changed) {
 			PORTB &= ~(1<<Z_DIR_D);
 			axis_z.direction_changed  = 0;	
 		}
 	}
 	else {
+//		PORTB |= (1<<Z_DIR_D);	
 		if (axis_z.direction_changed) {
 			PORTB |= (1<<Z_DIR_D);	
 			axis_z.direction_changed = 0;
@@ -213,8 +224,10 @@ int main(void)
 	
 	uint8_t rcv_frame[20];
 	uint8_t data[20];
+	uint8_t decoding_rslt = 0;
 	
 	uint8_t number_of_data_byte = 0;
+	uint8_t function_code_prev = 0;
 	uint8_t function_code = 0;
 	
 	function_executing_flag = 0;
@@ -228,9 +241,27 @@ int main(void)
 		asm("LDS R24,0x0233"); //	Why this string is necessary?
 		if (rx_flag) {
 			receiveFrame(uart_rcv_buffer, rcv_frame);
-			decodeFrame(rcv_frame, &function_code, data, &number_of_data_byte);
+			decoding_rslt = decodeFrame(rcv_frame, &function_code_prev, data, &number_of_data_byte);
+			switch(decoding_rslt) {
+				case 0: {	//	frame is correct
+					function_code = function_code_prev;
+					function_code_prev = 0;
+					break;
+				}
+				case 1: {	// frame has CRC8 error
+					functionErrorCRC();
+					function_code = 0;
+					function_code_prev = 0;
+					break;
+				}
+				case 2: {	//	frame has not end code
+					functionRepeat();
+					function_code = 0;
+					function_code_prev = 0;
+					break;
+				}
+			}
 		}
-		
 		uint16_t i = 0;						//	Why this operation is necessary?
 		for (i = 0; i < 20000; i++) {
 			;
@@ -247,21 +278,21 @@ int main(void)
  		if (finish_all_steps_flag == 1) {
  			function_executing_flag = 0;
  			finish_all_steps_flag = 0;
- 			function_code = 0;
  			answerFinishCommand(ANSW_FIN_COM);		//	Maybe if ANSW_FIN_COM replace on function_code, function will return function_code of last received function.
+			function_code = 0;
  		}
 
+		
+		if (function_code == EMERGENCY_STOP) {
+			functionEmergencyStop(&axis_x, &axis_y, &axis_z);
+			function_code = 0;
+			function_executing_flag = 0;
+		}
 		
 		if (!function_executing_flag) {
 			switch(function_code) {
 				case 0: {
 					break;	
-				}
-				case EMERGENCY_STOP: {
-					functionEmergencyStop(&axis_x, &axis_y, &axis_z);
-					function_code = 0;
-					function_executing_flag = 0;
-					break;
 				}
 				case ECHO: {
 					functionEcho();
@@ -365,12 +396,12 @@ int main(void)
 					function_executing_flag = 0;
 					break;
 				}
-				default: {
-					functionRepeat();
-					function_code = 0;
-					function_executing_flag = 0;
-					break;
-				}
+// 				default: {
+// 					functionRepeat();
+// 					function_code = 0;
+// 					function_executing_flag = 0;
+// 					break;
+// 				}
 			}
 		}
 	}

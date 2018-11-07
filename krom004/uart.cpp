@@ -13,13 +13,15 @@
 //driver
 
 
-uint8_t uart_rcv_buffer[MAX_BUFFER_SIZE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint8_t uart_rcv_buffer[MAX_BUFFER_SIZE_RCV] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint8_t u_buf_rcv_cur_pos = 0;
 uint8_t u_buf_rcv_over = 0;
 
-uint8_t uart_trm_buffer[MAX_BUFFER_SIZE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint8_t uart_trm_buffer[MAX_BUFFER_SIZE_TRM] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uint8_t u_buf_trm_cur_pos = 0;
 uint8_t u_buf_trm_over = 0;
+
+uint8_t parity_error_flag = 0;
 
 void uartInit(/*unsigned int m_uiUbrr*/void) {
 	unsigned int m_uiUbrr = MYUBRR;
@@ -32,7 +34,8 @@ void uartInit(/*unsigned int m_uiUbrr*/void) {
 	UCSR0B |= (1<<TXEN0);										//	enable transmitting
 	UCSR0B |= (1<<TXCIE0);										//	enable transmit complete interrupt
 	
-	UCSR0C = (1<<USBS0) | (3<<UCSZ00);							//	set frame format 8data, 2stop bit
+	UCSR0C = (1<<USBS0) | (3<<UCSZ00);							//	set frame format 8data, 1stop bit
+	UCSR0C |= (1<<UPM01);										//	Parity check ON Even parity
 }
 
 void uartTransmit(uint8_t m_ucMsg) {
@@ -49,11 +52,14 @@ uint8_t uartReceive(void) {
 
 void uartReceiveInInterrupt(void) {
 	rx_flag = 1;
-	if (u_buf_rcv_cur_pos >= 20) {
+	if (u_buf_rcv_cur_pos >= 40) {
 		u_buf_rcv_over = 1;
 		u_buf_rcv_cur_pos = 0;
 		return;	//	if receive buffer overload then all receiving bytes will be missed
 	}
+// 	if (UCSR0A & (1<<UPE0)) {
+// 		parity_error_flag = 1;
+// 	}
 	uart_rcv_buffer[u_buf_rcv_cur_pos] = UDR0;
 	u_buf_rcv_cur_pos++;
 }
@@ -79,7 +85,7 @@ void uartTransmitInInterrupt(void) {
 }
 
 uint8_t putInTrmBuf(uint8_t data_byte) {
-	if (u_buf_trm_cur_pos >= MAX_BUFFER_SIZE) {
+	if (u_buf_trm_cur_pos >= MAX_BUFFER_SIZE_TRM) {
 		return 1; //	transmit buffer overload
 	}
 	uart_trm_buffer[u_buf_trm_cur_pos] = data_byte;
@@ -88,7 +94,7 @@ uint8_t putInTrmBuf(uint8_t data_byte) {
 }
 
 uint8_t uartStartTrmInInterrupt(void) {
-	if (UDRE0) {
+	if (UCSR0A & (1 << UDRE0)) {
 		uartTransmitInInterrupt();
 		return 0;		//	uart data register was empty, transmitting is starting
 	}

@@ -124,7 +124,7 @@ uint8_t sendFrame(uint8_t *frame, uint8_t number_of_bytes) {
 uint8_t rx_flag = 0;
 uint8_t receiveFrame(uint8_t *buffer, uint8_t *frame) {
 	uint8_t i = 0;
-	for (i = 0; i < MAX_BUFFER_SIZE; i++) {
+	for (i = 0; i < MAX_BUFFER_SIZE_RCV; i++) {
 		if (buffer[i] == start_code) {
 			break;
 		}
@@ -138,10 +138,19 @@ uint8_t receiveFrame(uint8_t *buffer, uint8_t *frame) {
 	}
 	u_buf_rcv_cur_pos = 0;
 	rx_flag = 0;
+	//	clear buffer 
+	for (i = 0; i < MAX_BUFFER_SIZE_RCV; i++) {
+		buffer[i] = 0;
+	}
 	return 0;		//	all ok
 }
 
 uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data, uint8_t *number_of_data_bytes) {
+// 	if (parity_error_flag == 1) {
+// 		parity_error_flag = 0;
+// 		UCSR0A &= ~(1<<UPE0);
+// 		return 1;
+// 	}
 	uint8_t index = 0;
 	if (frame[index] != start_code) {
 		return 1;	//	frame is not correct
@@ -165,7 +174,7 @@ uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data, uint8
 	
 	frame[index] = end_code;	//	Calculating crc without crc byte, only: start code, function code, number of data bytes, data, end code
 	
-	if (checkCRC(crc, 4 + *number_of_data_bytes, frame) == 0) {
+	if (checkCRC(crc, 4 + *number_of_data_bytes, frame)) {
 		return 1;	//	crc error
 	}
 	
@@ -174,7 +183,7 @@ uint8_t decodeFrame(uint8_t *frame, uint8_t *function_code, uint8_t *data, uint8
 		return 0;	//	frame is correct
 	}
 	else {
-		return 1;	//	end_code of frame not found
+		return 2;	//	end_code of frame not found
 	}
 }
 

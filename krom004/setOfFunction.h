@@ -35,12 +35,14 @@ extern uint8_t finish_all_steps_flag;
 #define SET_STP_Z_UP		23
 #define SET_STP_Z_DOWN		24
 #define EMERGENCY_STOP		25
+#define ERROR_CRC			26
 
 //function's names end
 
 void functionEcho(void);
 void functionOK(void);
 void functionRepeat(void);
+void functionErrorCRC(void);
 void functionGetCoordinateXY(Axis *ax_x, Axis *ax_y);
 void functionGetCoordinateZ(Axis *ax_z);
 void functionSetStepsXY(Axis *ax_x, Axis *ax_y, uint8_t *data, uint8_t number_of_data_byte);

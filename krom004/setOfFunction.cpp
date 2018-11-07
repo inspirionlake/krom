@@ -64,6 +64,16 @@ void functionRepeat(void) {
 	sendFrame(frame_repeat, number_of_bytes_repeat);
 }
 
+void functionErrorCRC(void) {
+	uint8_t frame_error_crc[5];
+	uint8_t number_of_bytes_error_crc;
+	uint8_t data_error_crc[1];
+	uint8_t number_of_data_bytes_error_crc = 0;
+	// HERE program must repeat previously frame...
+	makeFrame(frame_error_crc, &number_of_bytes_error_crc, ERROR_CRC, data_error_crc, number_of_data_bytes_error_crc);
+	sendFrame(frame_error_crc, number_of_bytes_error_crc);
+}
+
 void functionGetCoordinateXY(Axis *ax_x, Axis *ax_y) {	//	check on hardware 15.07.18
 	uint8_t frame_getCoordinateXY[13];
 	uint8_t number_of_bytes_getCoordinateXY;
@@ -138,7 +148,6 @@ void functionSetStepsXY(Axis *ax_x, Axis *ax_y, uint8_t *data, uint8_t number_of
 	ax_x->setStep(steps_x);
 	ax_y->setStep(steps_y);
 	sei();
-	//answerExecuteCommand(SET_COORDINATE_XY);	
 } 
 
 void functionSetCoordinateZ(Axis *ax_z, uint8_t *data, uint8_t number_of_data_byte) {

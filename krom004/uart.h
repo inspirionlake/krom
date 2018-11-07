@@ -9,7 +9,8 @@
 #ifndef UART_H_
 #define UART_H_
 
-#define MAX_BUFFER_SIZE 20
+#define MAX_BUFFER_SIZE_RCV 40
+#define MAX_BUFFER_SIZE_TRM 20
 
 #include <avr/io.h>
 
@@ -24,13 +25,15 @@
 #define MYUBRR FOSC/16/BAUD-1
 
 // driver
-extern uint8_t uart_rcv_buffer[20];
+extern uint8_t uart_rcv_buffer[40];
 extern uint8_t u_buf_rcv_cur_pos;
 extern uint8_t u_buf_rcv_over;
 
 extern uint8_t uart_trm_buffer[20];
 extern uint8_t u_buf_trm_cur_pos;
 extern uint8_t u_buf_trm_over;
+
+extern uint8_t parity_error_flag;
 
 void uartInit(void);
 void uartTransmit(uint8_t data);
